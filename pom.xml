@@ -5,7 +5,7 @@
 		<groupId>dase</groupId>
 		<artifactId>weibostack</artifactId>
 		<version>0.0.1</version>
-<relativePath>../weibostack/pom.xml</relativePath>
+		<relativePath>../weibostack/pom.xml</relativePath>
 	</parent>
 	<artifactId>tweetstreaming</artifactId>
 	<version>0.0.1</version>
@@ -93,5 +93,6 @@
 			<artifactId>common</artifactId>
 			<version>0.0.1</version>
 		</dependency>
+		
 	</dependencies>
 </project>

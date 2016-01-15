@@ -102,7 +102,6 @@ public class WordStatisticProducer extends Thread {
 				}
 				for (Entry<String, Map<Long, Integer>> wordEntry : wordCounters.entrySet()) {
 					for (Entry<Long, Integer> ts : wordEntry.getValue().entrySet()) {
-
 						wordDao.updateWordFreq(wordEntry.getKey(), ts.getKey(), ts.getValue());
 					}
 				}
@@ -113,7 +112,6 @@ public class WordStatisticProducer extends Thread {
 				}
 			}
 		}
-
 	}
 
 	/**

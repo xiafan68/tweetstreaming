@@ -71,7 +71,8 @@ public class TimeSeriesSegmentation implements ServerController.IServerSubscribe
 		segDao = new SegStateDao(conn);
 		consumer = new TweetConsumer();
 		// KafkaTopics.RTSERIES_SEG_GROUP
-		consumer.open(Arrays.asList(KafkaTopics.RTSERIES_STATE_TOPIC), "test", kafkaServer, restart);
+		consumer.open(Arrays.asList(KafkaTopics.RTSERIES_STATE_TOPIC), KafkaTopics.RTSERIES_SEG_GROUP, kafkaServer,
+				restart);
 		MetricBasedPerfProfile.registerServer(controler);
 	}
 
@@ -101,6 +102,7 @@ public class TimeSeriesSegmentation implements ServerController.IServerSubscribe
 	}
 
 	public void start() {
+		controler.running();
 		while (true) {
 			susSem.acquireUninterruptibly();
 			try {
@@ -140,16 +142,21 @@ public class TimeSeriesSegmentation implements ServerController.IServerSubscribe
 				public void newSeg(Interval preInv, Segment seg) {
 					segState.lastUpdateTime = Math.max(segState.lastUpdateTime,
 							DateUtil.timeFromWeiboDate(seg.getEndTime()));
-					try {
-						logger.info("indexing " + state + ": " + seg);
-						client.indexTweetSeg(new TweetSeg(state.mid, seg.getStart(), seg.getStartCount(),
-								seg.getEndTime(), seg.getEndCount()));
-					} catch (TException e) {
-						if (e.getMessage().contains("Broken pipe")) {
-							// 重新建立与索引服务器的连接
-							connectToLSMOIndex();
+					for (int i = 0; i < 10; i++) {
+						try {
+							logger.info("indexing " + state + ": " + seg);
+							client.indexTweetSeg(new TweetSeg(state.mid, seg.getStart(), seg.getStartCount(),
+									seg.getEndTime(), seg.getEndCount()));
+							break;
+						} catch (TException e) {
+							if (e.getMessage().contains("Broken pipe")) {
+								// 重新建立与索引服务器的连接
+								connectToLSMOIndex();
+							} else if (e.getMessage().contains("not ready")) {
+
+							}
+							e.printStackTrace();
 						}
-						e.printStackTrace();
 					}
 				}
 			});

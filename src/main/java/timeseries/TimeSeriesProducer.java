@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.concurrent.Semaphore;
 
 import org.apache.log4j.Logger;
@@ -41,7 +42,7 @@ public class TimeSeriesProducer extends Thread implements ServerController.IServ
 	TweetKafkaProducer producer;
 	TweetDao tweetDao;
 	SegStateDao segDao;
-
+	Random rand = new Random();
 	Semaphore susSem = new Semaphore(1);
 	ServerController controller = new ServerController(this);
 
@@ -71,39 +72,46 @@ public class TimeSeriesProducer extends Thread implements ServerController.IServ
 			susSem.acquireUninterruptibly();
 			try {
 				for (Entry<String, List<Status>> topicData : consumer.nextStatus().entrySet()) {
-					// 在高速转发的情况下，这样可以减轻写入到kafka中的状态数据
-					Map<String, TimeSeriesUpdateState> states = new HashMap<String, TimeSeriesUpdateState>();
-					List<TimeSeriesUpdateState> segSignal = new ArrayList<TimeSeriesUpdateState>();
-					for (Status cur : topicData.getValue()) {
-						tweetDao.putTweet(cur);
-						if (cur.getRetweetedStatus() != null) {
-							tweetDao.putRtweet(cur);
-							for (TimeSeriesUpdateState state : tweetDao.updateRtTimeSeries(cur)) {
-								states.put(state.getMid(), state);
-							}
-						} else {
-							// maybe it is the first tweet or an indication for
-							// end
-							// of monitoring
-							if (cur.getMid() != null) {
-								SegState state = segDao.getSegState(cur.getMid());
-								if (state != null) {
-									long updateDate = DateUtil.roundByHour(System.currentTimeMillis());
-									segSignal.add(new TimeSeriesUpdateState(state.mid, updateDate, true));
-									List<String> mids = tweetDao.getRtMids(state.mid);
-									for (String rtMid : mids) {
-										segSignal.add(new TimeSeriesUpdateState(rtMid, updateDate, true));
+					try {
+						// 在高速转发的情况下，这样可以减轻写入到kafka中的状态数据
+						Map<String, TimeSeriesUpdateState> states = new HashMap<String, TimeSeriesUpdateState>();
+						List<TimeSeriesUpdateState> segSignal = new ArrayList<TimeSeriesUpdateState>();
+						for (Status cur : topicData.getValue()) {
+							tweetDao.putTweet(cur);
+							if (cur.getRetweetedStatus() != null) {
+								if (rand.nextFloat() < 0.01
+										&& tweetDao.getStatusByMid(cur.getRetweetedStatus().getMid()) == null) {
+
+								}
+								tweetDao.putRtweet(cur);
+								for (TimeSeriesUpdateState state : tweetDao.updateRtTimeSeries(cur)) {
+									states.put(state.getMid(), state);
+								}
+							} else {
+								// maybe it is the first tweet or an indication
+								// for end of monitoring
+								if (cur.getMid() != null) {
+									SegState state = segDao.getSegState(cur.getMid());
+									if (state != null) {
+										long updateDate = DateUtil.roundByHour(System.currentTimeMillis());
+										segSignal.add(new TimeSeriesUpdateState(state.mid, updateDate, true));
+										List<String> mids = tweetDao.getRtMids(state.mid);
+										for (String rtMid : mids) {
+											segSignal.add(new TimeSeriesUpdateState(rtMid, updateDate, true));
+										}
 									}
 								}
 							}
 						}
-					}
-					for (TimeSeriesUpdateState state : segSignal) {
-						states.put(state.mid, state);
-					}
-					for (TimeSeriesUpdateState state : states.values()) {
-						logger.info("update time series " + state);
-						producer.storeTsUpdateState(state);
+						for (TimeSeriesUpdateState state : segSignal) {
+							states.put(state.mid, state);
+						}
+						for (TimeSeriesUpdateState state : states.values()) {
+							logger.info("update time series " + state);
+							producer.storeTsUpdateState(state);
+						}
+					} catch (Exception ex) {
+						ex.printStackTrace();
 					}
 				}
 			} finally {
