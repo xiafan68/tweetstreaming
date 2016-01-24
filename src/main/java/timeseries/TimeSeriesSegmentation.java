@@ -107,7 +107,11 @@ public class TimeSeriesSegmentation implements ServerController.IServerSubscribe
 			susSem.acquireUninterruptibly();
 			try {
 				for (TimeSeriesUpdateState state : consumer.nextTSUpdateStates()) {
-					onTimeSeriesUpdate(state);
+					try {
+						onTimeSeriesUpdate(state);
+					} catch (Exception ex) {
+						logger.info(ex.getMessage());
+					}
 				}
 			} finally {
 				susSem.release();
