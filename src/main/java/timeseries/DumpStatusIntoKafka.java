@@ -34,9 +34,13 @@ public class DumpStatusIntoKafka extends Thread {
 		logger.info("begin to consume tweets");
 		String line = null;
 		try {
+			long count = 0;
 			while (null != (line = reader.readLine())) {
 				Status status = StatusSerDer.fromJSON(line);
 				producer.store(KafkaTopics.RETWEET_TOPIC, status);
+				if (count++ % 10000 == 0) {
+					logger.info("loaded " + count + " statuses");
+				}
 			}
 		} finally {
 			try {
