@@ -107,7 +107,11 @@ public class TimeSeriesSegmentation implements ServerController.IServerSubscribe
 			susSem.acquireUninterruptibly();
 			try {
 				for (TimeSeriesUpdateState state : consumer.nextTSUpdateStates()) {
-					onTimeSeriesUpdate(state);
+					try {
+						onTimeSeriesUpdate(state);
+					} catch (Exception ex) {
+						logger.info(ex.getMessage());
+					}
 				}
 			} finally {
 				susSem.release();
@@ -149,13 +153,14 @@ public class TimeSeriesSegmentation implements ServerController.IServerSubscribe
 									seg.getEndTime(), seg.getEndCount()));
 							break;
 						} catch (TException e) {
+							e.printStackTrace();
 							if (e.getMessage().contains("Broken pipe")) {
 								// 重新建立与索引服务器的连接
 								connectToLSMOIndex();
 							} else if (e.getMessage().contains("not ready")) {
 
 							}
-							e.printStackTrace();
+
 						}
 					}
 				}

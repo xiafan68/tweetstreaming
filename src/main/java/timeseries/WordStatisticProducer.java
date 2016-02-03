@@ -20,7 +20,8 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import kafkastore.KafkaTopics;
 import kafkastore.TweetConsumer;
-import shingle.TextShingle;
+import shingle.ITextShingle;
+import shingle.ShingleFactory;
 import util.DateUtil;
 import weibo4j.model.Status;
 
@@ -36,7 +37,7 @@ public class WordStatisticProducer extends Thread {
 	TweetConsumer consumer;
 	WordDao wordDao;
 	CrawlStateDao stateDao;
-	TextShingle shingle;
+	ITextShingle shingle;
 
 	public WordStatisticProducer(String kafkaServers, String dbServers, boolean restart) {
 		logger.info("connecting to cassandra");
@@ -49,7 +50,7 @@ public class WordStatisticProducer extends Thread {
 		consumer = new TweetConsumer();
 		consumer.open(Arrays.asList(KafkaTopics.TWEET_TOPIC, KafkaTopics.RETWEET_TOPIC), KafkaTopics.WORD_STATS_GROUP,
 				kafkaServers, restart);
-		shingle = new TextShingle(null);
+		shingle = ShingleFactory.createShingle();
 	}
 
 	@Override
@@ -90,7 +91,7 @@ public class WordStatisticProducer extends Thread {
 						long time = DateUtil.roundByHour(cur.getCreatedAt().getTime());
 						crawlState.get(topicData.getKey()).put(time, crawlState.get(topicData.getKey()).get(time) + 1);
 						try {
-							List<String> words = shingle.shingling(cur.getText());
+							List<String> words = shingle.shingling(cur.getText(), false);
 							for (String word : words) {
 								Map<Long, Integer> curMap = wordCounters.get(word);
 								curMap.put(time, curMap.get(time) + 1);

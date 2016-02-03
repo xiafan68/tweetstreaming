@@ -79,9 +79,9 @@ public class TimeSeriesProducer extends Thread implements ServerController.IServ
 						for (Status cur : topicData.getValue()) {
 							tweetDao.putTweet(cur);
 							if (cur.getRetweetedStatus() != null) {
-								if (rand.nextFloat() < 0.01
-										&& tweetDao.getStatusByMid(cur.getRetweetedStatus().getMid()) == null) {
-
+								// rand.nextFloat() < 0.01 &&
+								if (tweetDao.getStatusByMid(cur.getRetweetedStatus().getMid()) == null) {
+									tweetDao.putTweet(cur.getRetweetedStatus());
 								}
 								tweetDao.putRtweet(cur);
 								for (TimeSeriesUpdateState state : tweetDao.updateRtTimeSeries(cur)) {
