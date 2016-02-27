@@ -86,6 +86,7 @@ public class WordStatisticProducer extends Thread {
 			for (Entry<String, List<Status>> topicData : consumer.nextStatus().entrySet()) {
 				wordCounters.clear();
 				crawlState.clear();
+				logger.info("fetched new data:" + topicData.getValue().size());
 				for (Status cur : topicData.getValue()) {
 					if (cur.getCreatedAt() != null) {
 						long time = DateUtil.roundByHour(cur.getCreatedAt().getTime());

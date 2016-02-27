@@ -103,6 +103,7 @@ public class RetweetStatsGen extends Thread implements ServerController.IServerS
 			try {
 				for (Entry<String, List<Status>> topicData : consumer.nextStatus().entrySet()) {
 					// 在高速转发的情况下，这样可以减轻写入到kafka中的状态数据
+					logger.info("begin proccessing messeages:" + topicData.getValue().size());
 					statsDao.beginBatch();
 					for (Status status : topicData.getValue()) {
 						if (status.getCreatedAt() != null) {
@@ -110,6 +111,9 @@ public class RetweetStatsGen extends Thread implements ServerController.IServerS
 							String mid = status.getMid();
 							if (status.getRetweetedStatus() != null) {
 								mid = status.getRetweetedStatus().getMid();
+								if (mid==null||mid.isEmpty()){
+									mid = Long.toString(status.getId());
+								}
 							}
 							if (status.getSource() != null && status.getSource().getName() != null) {
 								statsDao.putClientForTweet(mid, tstime, status.getSource().getName(), 1);

@@ -36,10 +36,14 @@ public class DumpStatusIntoKafka extends Thread {
 		try {
 			long count = 0;
 			while (null != (line = reader.readLine())) {
-				Status status = StatusSerDer.fromJSON(line);
-				producer.store(KafkaTopics.RETWEET_TOPIC, status);
-				if (count++ % 10000 == 0) {
-					logger.info("loaded " + count + " statuses");
+				try {
+					Status status = StatusSerDer.fromJSON(line);
+					producer.store(KafkaTopics.RETWEET_TOPIC, status);
+					if (count++ % 10000 == 0) {
+						logger.info("loaded " + count + " statuses");
+					}
+				} catch (Exception ex) {
+					System.out.println(line);
 				}
 			}
 		} finally {
