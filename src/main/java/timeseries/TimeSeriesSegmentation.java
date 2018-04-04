@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
+import kafkastore.model.TimeSeriesUpdateState;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.TException;
@@ -25,7 +26,6 @@ import dase.perf.ServerController;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import kafkastore.KafkaTopics;
-import kafkastore.TimeSeriesUpdateState;
 import kafkastore.TweetConsumer;
 import searchapi.TweetSeg;
 import searchapi.TweetService;

@@ -19,19 +19,7 @@
 					<source>1.7</source>
 					<target>1.7</target>
 				</configuration>
-				<executions>
-					<execution>
-						<id>default-testCompile</id>
-						<phase>test-compile</phase>
-						<configuration>
-							<testInclude>
-								<include>**/tweetcralwer/*.java</include>
-							</testInclude>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
-
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
@@ -67,11 +55,11 @@
 		</dependency>
 		<!-- <dependency> <groupId>org.apache</groupId> <artifactId>spark</artifactId> 
 			<version>assembly-1.5.0-hadoop2.4.0</version> <scope>provided</scope> </dependency> -->
-		<dependency>
+		<!--<dependency>
 			<groupId>org.apache.spark</groupId>
 			<artifactId>spark-streaming-kafka_2.10</artifactId>
 			<version>1.5.0</version>
-		</dependency>
+		</dependency>-->
 
 		<dependency>
 			<groupId>org.apache.thrift</groupId>

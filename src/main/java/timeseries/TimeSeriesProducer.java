@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
 
+import kafkastore.model.TimeSeriesUpdateState;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -23,7 +24,6 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import kafkastore.KafkaProducerFactory;
 import kafkastore.KafkaTopics;
-import kafkastore.TimeSeriesUpdateState;
 import kafkastore.TweetConsumer;
 import kafkastore.TweetKafkaProducer;
 import util.DateUtil;
